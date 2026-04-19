@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Panel By Yann</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div class="icon-wrap">
+        <!--
+          Ganti URL di bawah dengan URL gambar kamu (jpg/png/gif/webp)
+          Contoh: <img src="https://i.imnn" alt="Logo"/>
+        -->
+        <img src="https://c.termai.cc/i147/VIyol.jpg" alt="Logo" onerror="this.style.display='none'"/>
+      </div>
+      <h1>Create Panel By Yann</h1>
+      <p class="subtitle">By YANN TAMVAN</p>
+    </div>
+
+    <form id="panelForm">
+      <div class="form-group">
+        <label>Username:</label>
+        <div class="input-row">
+          <input type="text" id="username" placeholder="Masukkan username" required/>
+          <button type="button" class="btn-random" onclick="randomUsername()" title="Acak Username">
+            <svg viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Pilih Jenis Panel:</label>
+        <select id="jenisPanel">
+          <option value="user">User Panel</option>
+          <option value="admin">Admin Panel</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Pilih RAM:</label>
+        <select id="ram">
+          <option value="1024">1 GB</option>
+          <option value="2048">2 GB</option>
+          <option value="3072">3 GB</option>
+          <option value="4096">4 GB</option>
+          <option value="5120">5 GB</option>
+          <option value="6144">6 GB</option>
+          <option value="7168">7 GB</option>
+          <option value="8192">8 GB</option>
+          <option value="9216">9 GB</option>
+          <option value="0">Unlimited</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">Submit</button>
+    </form>
+
+    <div id="resultBox"></div>
+  </div>
+
+  <script>
+    /*
+      ===== PENGATURAN URL API =====
+      Ganti API_URL sesuai tempat kamu deploy backend:
+
+      - Jika pakai server.js (node server.js):
+          "/api/panel/create"  ← sudah benar, jangan diubah
+
+      - Jika backend di Replit/VPS terpisah:
+          "https://domain-kamu.com/api/panel/create"
+    */
+    const API_URL = "/api/panel/create";
+
+    const adjs  = ["cool","dark","fast","smart","epic","nova","ultra","mega","super","pro"];
+    const nouns = ["wolf","hawk","lion","bear","fox","eagle","tiger","panda","dragon","phoenix"];
+
+    function randomUsername() {
+      const a = adjs[Math.floor(Math.random() * adjs.length)];
+      const n = nouns[Math.floor(Math.random() * nouns.length)];
+      document.getElementById("username").value = a + n + (Math.floor(Math.random() * 999) + 1);
+    }
+
+    async function copyText(text, btn) {
+      try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = "Tersalin!";
+        setTimeout(() => btn.textContent = "Salin", 2000);
+      } catch {
+        btn.textContent = "Gagal!";
+        setTimeout(() => btn.textContent = "Salin", 2000);
+      }
+    }
+
+    document.getElementById("panelForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value.trim();
+      if (!username) return;
+
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Sedang Membuat...';
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username,
+            jenisPanel: document.getElementById("jenisPanel").value,
+            jenisServer: "bot",
+            ram: Number(document.getElementById("ram").value),
+          }),
+        });
+        const data = await res.json();
+        const box = document.getElementById("resultBox");
+
+        if (data.success) {
+          const sidHtml = data.serverId
+            ? `<div class="result-item">
+                <span>Server ID: <strong style="font-family:monospace">${data.serverId}</strong></span>
+                <button class="btn-copy" onclick="copyText('${data.serverId}',this)">Salin</button>
+               </div>`
+            : "";
+
+          box.innerHTML = `
+            <div class="result-box">
+              <div class="result-header">
+                <div class="status-icon success">
+                  <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <h2>Status Pembuatan</h2>
+                <p>${data.message}</p>
+              </div>
+              <div class="result-list">
+                <div class="result-item">
+                  <span>Username: <strong>${data.username}</strong></span>
+                  <button class="btn-copy" onclick="copyText('${data.username}',this)">Salin</button>
+                </div>
+                <div class="result-item">
+                  <span>Password: <strong style="font-family:monospace">${data.password}</strong></span>
+                  <button class="btn-copy" onclick="copyText('${data.password}',this)">Salin</button>
+                </div>
+                <div class="result-item">
+                  <span>Email: <strong>${data.email}</strong></span>
+                  <button class="btn-copy" onclick="copyText('${data.email}',this)">Salin</button>
+                </div>
+                <div class="result-item">
+                  <span>Tipe Panel: <strong class="primary">${data.panelType}</strong></span>
+                </div>
+                ${sidHtml}
+              </div>
+              <p class="login-link">Login di: <a href="https://sanzy.webserverku.biz.id" target="_blank">sanzy.webserverku.biz.id</a></p>
+              <button class="btn-close" onclick="document.getElementById('resultBox').innerHTML=''">Tutup</button>
+            </div>`;
+          document.getElementById("username").value = "";
+        } else {
+          box.innerHTML = `
+            <div class="result-box">
+              <div class="result-header">
+                <div class="status-icon error">
+                  <svg viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                </div>
+                <h2>Gagal</h2>
+                <p>${data.message}</p>
+              </div>
+              <button class="btn-close" onclick="document.getElementById('resultBox').innerHTML=''">Tutup</button>
+            </div>`;
+        }
+      } catch (err) {
+        document.getElementById("resultBox").innerHTML = `
+          <div class="result-box">
+            <div class="result-header">
+              <div class="status-icon error">
+                <svg viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+              </div>
+              <h2>Error Koneksi</h2>
+              <p>${err.message}</p>
+            </div>
+            <button class="btn-close" onclick="document.getElementById('resultBox').innerHTML=''">Tutup</button>
+          </div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Submit";
+      }
+    });
+  </script>
+</body>
+</html>
